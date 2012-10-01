@@ -132,7 +132,10 @@ class Factory(object):
         if callable:
             args = worker.get('args') or ()
             kwargs = worker.get('kwargs') or {}
-            callable(*args, **kwargs)
+            try:
+                callable(*args, **kwargs)
+            except Exception:
+                logger.exception('exception in %s' % worker['target'])
 
     def _start_worker(self, worker):
         proc = Process(target=self._worker_process,
