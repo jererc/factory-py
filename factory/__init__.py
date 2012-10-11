@@ -15,7 +15,6 @@ COL_NAME = 'workers'
 MANAGER_DELAY = 10  # seconds
 WORKER_TIMEOUT = 3600 * 24     # seconds
 
-
 logger = logging.getLogger(__name__)
 db_con = Connection()
 
