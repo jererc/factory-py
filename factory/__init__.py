@@ -171,7 +171,7 @@ class Factory(object):
 
         signal.signal(signal.SIGTERM, self._sigint_terminate)
         signal.signal(signal.SIGTTOU, signal.SIG_IGN)
-        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+        # signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
         self._start_listener()
         self._set_logging()
@@ -190,6 +190,7 @@ class Factory(object):
                 elif not self._validate_worker(worker):
                     self._stop_worker(worker['_id'])
 
+            # Reap dead children
             for worker_id, proc in self.processes.items():
                 try:
                     os.waitpid(proc.pid, os.WNOHANG)
