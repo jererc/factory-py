@@ -43,6 +43,7 @@ class QueueHandler(logging.Handler):
 
 
 class Factory(object):
+
     def __init__(self, db_name=DB_NAME, collection=COL_NAME):
         self.col = db_con[db_name][collection]
         self.processes = {}
@@ -72,9 +73,6 @@ class Factory(object):
 
     def remove(self, **spec):
         self.col.remove(spec, safe=True)
-
-    def drop(self):
-        self.col.drop()
 
     def _set_logging(self):
         '''Set the logging queue handler.
@@ -158,7 +156,6 @@ class Factory(object):
         delta = timedelta(seconds=worker.get('timeout', WORKER_TIMEOUT))
         if worker['started'] > datetime.utcnow() - delta:
             return True
-
         logger.error('worker %s timed out after %s', worker, delta)
 
     def _sigint_terminate(self, signum, frame):
@@ -169,6 +166,7 @@ class Factory(object):
         '''
         os.setpgrp()
 
+        signal.signal(signal.SIGINT, self._sigint_terminate)
         signal.signal(signal.SIGTERM, self._sigint_terminate)
         signal.signal(signal.SIGTTOU, signal.SIG_IGN)
         # signal.signal(signal.SIGCHLD, signal.SIG_IGN)
