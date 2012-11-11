@@ -31,15 +31,25 @@ class QueueHandler(logging.Handler):
         Writes the LogRecord to the queue.
         '''
         try:
-            ei = record.exc_info
-            if ei:
-                dummy = self.format(record) # just to get traceback text into record.exc_text
-                record.exc_info = None  # not needed any more
+            record = self._format_record(record)
             self.queue.put_nowait(record)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
             self.handleError(record)
+
+    def _format_record(self, record):
+        '''Ensure that exc_info and args have been stringified.
+        Remove any chance of unpickleable things inside
+        and possibly reduce message size sent over the pipe.
+        '''
+        if record.args:
+            record.msg = record.msg % record.args
+            record.args = None
+        if record.exc_info:
+            dummy = self.format(record)
+            record.exc_info = None
+        return record
 
 
 class Factory(object):
