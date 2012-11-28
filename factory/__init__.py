@@ -26,18 +26,6 @@ class QueueHandler(logging.Handler):
         logging.Handler.__init__(self)
         self.queue = queue
 
-    def emit(self, record):
-        '''Emit a record.
-        Writes the LogRecord to the queue.
-        '''
-        try:
-            record = self._format_record(record)
-            self.queue.put_nowait(record)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:
-            self.handleError(record)
-
     def _format_record(self, record):
         '''Ensure that exc_info and args have been stringified.
         Remove any chance of unpickleable things inside
@@ -50,6 +38,18 @@ class QueueHandler(logging.Handler):
             dummy = self.format(record)
             record.exc_info = None
         return record
+
+    def emit(self, record):
+        '''Emit a record.
+        Writes the LogRecord to the queue.
+        '''
+        try:
+            record = self._format_record(record)
+            self.queue.put_nowait(record)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.handleError(record)
 
 
 class Factory(object):
