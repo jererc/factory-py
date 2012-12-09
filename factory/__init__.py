@@ -126,11 +126,11 @@ class Factory(object):
             module = __import__(module_, globals(), locals(), [module_name], -1)
             return getattr(module, func_)
         except ValueError:
-            logger.error('no module specified in target "%s"', target)
+            logger.error('no module specified in target "%s"' % target)
         except ImportError, e:
-            logger.error('failed to import module "%s": %s', module_, str(e))
+            logger.error('failed to import module "%s": %s' % (module_, str(e)))
         except AttributeError:
-            logger.error('failed to import "%s" from module "%s"', func_, module_)
+            logger.error('failed to import "%s" from module "%s"' % (func_, module_))
 
     def _worker_process(self, worker):
         self._set_logging()
@@ -166,7 +166,7 @@ class Factory(object):
         delta = timedelta(seconds=worker.get('timeout', WORKER_TIMEOUT))
         if worker['started'] > datetime.utcnow() - delta:
             return True
-        logger.error('worker %s timed out after %s', worker, delta)
+        logger.error('worker %s timed out after %s' % (worker, delta))
 
     def _sigint_terminate(self, signum, frame):
         os.killpg(os.getpgrp(), 9)
@@ -189,7 +189,7 @@ class Factory(object):
             for worker in self.col.find():
                 if worker['_id'] not in self.processes:
                     if worker.get('daemon') and worker.get('started'):
-                        logger.error('daemon worker %s died', worker)
+                        logger.error('daemon worker %s died' % worker)
                     self.col.update({'_id': worker['_id']},
                             {'$set': {'started': datetime.utcnow()}},
                             safe=True)
