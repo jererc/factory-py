@@ -27,22 +27,13 @@ class QueueHandler(logging.Handler):
         self.queue = queue
 
     def _format_record(self, record):
-        '''Ensure that exc_info and args have been stringified.
-        Remove any chance of unpickleable things inside
-        and possibly reduce message size sent over the pipe.
-        '''
-        if record.args:
-            record.msg = record.msg % record.args
-            record.args = None
+        record.message = record.msg % record.args if record.args else record.msg
         if record.exc_info:
             dummy = self.format(record)
             record.exc_info = None
         return record
 
     def emit(self, record):
-        '''Emit a record.
-        Writes the LogRecord to the queue.
-        '''
         try:
             record = self._format_record(record)
             self.queue.put_nowait(record)
@@ -126,11 +117,11 @@ class Factory(object):
             module = __import__(module_, globals(), locals(), [module_name], -1)
             return getattr(module, func_)
         except ValueError:
-            logger.error('no module specified in target "%s"' % target)
+            logger.error('no module specified in target "%s"', target)
         except ImportError, e:
-            logger.error('failed to import module "%s": %s' % (module_, str(e)))
+            logger.error('failed to import module "%s": %s', module_, str(e))
         except AttributeError:
-            logger.error('failed to import "%s" from module "%s"' % (func_, module_))
+            logger.error('failed to import "%s" from module "%s"', func_, module_)
 
     def _worker_process(self, worker):
         self._set_logging()
@@ -142,7 +133,7 @@ class Factory(object):
             try:
                 callable(*args, **kwargs)
             except Exception:
-                logger.exception('exception in %s' % worker['target'])
+                logger.exception('exception in %s', worker['target'])
 
     def _start_worker(self, worker):
         proc = Process(target=self._worker_process,
@@ -166,7 +157,7 @@ class Factory(object):
         delta = timedelta(seconds=worker.get('timeout', WORKER_TIMEOUT))
         if worker['started'] > datetime.utcnow() - delta:
             return True
-        logger.error('worker %s timed out after %s' % (worker, delta))
+        logger.error('worker %s timed out after %s', worker, delta)
 
     def _sigint_terminate(self, signum, frame):
         os.killpg(os.getpgrp(), 9)
@@ -189,7 +180,7 @@ class Factory(object):
             for worker in self.col.find():
                 if worker['_id'] not in self.processes:
                     if worker.get('daemon') and worker.get('started'):
-                        logger.error('daemon worker %s died' % worker)
+                        logger.error('daemon worker %s died', worker)
                     self.col.update({'_id': worker['_id']},
                             {'$set': {'started': datetime.utcnow()}},
                             safe=True)
